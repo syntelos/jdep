@@ -1,0 +1,13 @@
+
+Work in progress
+
+    Plan
+
+        java -jar jdep.jar --classpath subject.jar --class class.name
+
+            Report classes in 'classpath' having operational references to 'class'.
+
+        java -jar jdep.jar --classpath subject.jar --method class.method.name
+
+            Report classes in 'classpath' having calls to method 'name' in class 'class'.
+
