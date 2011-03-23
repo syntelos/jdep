@@ -1,6 +1,7 @@
 package jdep;
 
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.URL;
@@ -15,7 +16,7 @@ public class Jdep
     extends java.net.URLClassLoader
 {
 
-    private boolean listtop = false, recursive = false;
+    private boolean listtop = false;
 
     private Map<String,ClassFile> classes = new HashMap<String,ClassFile>();
 
@@ -29,42 +30,32 @@ public class Jdep
 	this.listtop = (!this.listtop);
 	return this;
     }
-    public Jdep recursive(){
-	this.recursive = (!this.recursive);
-	return this;
+    public boolean list(String classname, PrintStream out){
+
+	return this.list(classname,new Visit.Flat(out));
     }
-    public Jdep list(String classname, PrintStream out){
-	return this.list(classname,new List.Flat(out));
-    }
-    public Jdep list(String classname, List out){
+    public boolean list(String classname, Visit out){
 
 	return this.list(this.find(classname),out);
     }
-    public Jdep list(ClassFile cf, List out){
+    public boolean list(ClassFile cf, Visit out){
 	if (null != cf){
 
-	    if (out.listBegin(cf)){
-
-		ClassFile sf = cf.getSuperClassFile();
-		while (null != sf){
-		    this.list(sf,out);
-		    sf = sf.getSuperClassFile();
-		}
+	    if (out.visit(cf)){
 
 		for (Pool p: cf.pool){
 		    if (p instanceof Pool.Class){
 			ClassFile cc = (ClassFile)p.getValue(cf);
-			if (null != cc){
+			if (null != cc && cf != cc){
 
 			    this.list(cc,out);
 			}
 		    }
 		}
-
-		out.listEnd(cf);
+		return true;
 	    }
 	}
-	return this;
+	return false;
     }
     public ClassFile lookup(String name){
 	return this.classes.get(name.replace('.','/')+".class");
@@ -99,7 +90,7 @@ public class Jdep
     }
 
     public enum Option {
-	CLASS, HELP, TOP, PATH, R;
+	CLASS, HELP, TOP, PATH;
 
 	public final static Option For(String arg){
 	    if (null == arg)
@@ -119,14 +110,14 @@ public class Jdep
     public static void usage(){
 	System.out.println("Usage");
 	System.out.println();
-	System.out.println("  jdep [--r] [--top] --path file.jar --class pkg.class ");
+	System.out.println("  jdep [--top] --path file.jar --class pkg.class ");
 	System.out.println();
 	System.out.println("Description");
 	System.out.println();
-	System.out.println("  List (recursive) class dependencies from class in path.");
+	System.out.println("  Recursively list class dependencies from class in path.");
 	System.out.println();
-	System.out.println("  Path is the usual colon (:) delimited list of directories");
-	System.out.println("  and jar files.");
+	System.out.println("  Path is the usual (classpath) colon (:) delimited list of");
+	System.out.println("  file system directories and jar files.");
 	System.out.println();
 	System.out.println("  Class is a fully qualified dot delimited classname.  Inner");
 	System.out.println("  classes are delimited with '$'.");
@@ -138,7 +129,7 @@ public class Jdep
     public static void main(String[] argv){
 	final int argc = argv.length;
 	try {
-	    boolean listtop = false, recursive = false;
+	    boolean listtop = false;
 	    URL[] path = null;
 	    String classname = null;
 
@@ -167,16 +158,17 @@ public class Jdep
 			try {
 			    path = ClassPath(path,arg);
 			}
+			catch (java.io.FileNotFoundException exc){
+			    System.err.printf("Error in path '%s', element not found '%s'.%n",arg,exc.getMessage());
+			    System.exit(1);
+			}
 			catch (Exception exc){
-			    System.err.printf("Error parsing path '%s'.%n",arg);
+			    System.err.printf("Error in path '%s'.%n",arg);
 			    System.exit(1);
 			}
 		    }
 		    else
 			usage();
-		    break;
-		case R:
-		    recursive = true;
 		    break;
 		default:
 		    throw new Error(arg);
@@ -186,10 +178,9 @@ public class Jdep
 	    if (null != path && null != classname){
 
 		Jdep main = new Jdep(path);
+
 		if (listtop)
 		    main.listtop();
-		if (recursive)
-		    main.recursive();
 
 		main.list(classname,System.out);
 
@@ -219,7 +210,7 @@ public class Jdep
 	}
     }
     public final static URL[] ClassPath(URL[] classpath, String path)
-	throws java.net.MalformedURLException
+	throws java.io.IOException
     {
 	if (null != path){
 	    StringTokenizer strtok = new StringTokenizer(path,":");
@@ -228,12 +219,11 @@ public class Jdep
 		URL[] list = new URL[count];
 		for (int cc = 0; cc < count; cc++){
 		    String pel = strtok.nextToken();
-		    try {
-			list[cc] = new URL(pel);
-		    }
-		    catch (java.net.MalformedURLException exc){
-			list[cc] = new URL("file:"+pel);
-		    }
+		    File test = new File(pel);
+		    if (test.exists())
+			list[cc] = test.toURI().toURL();
+		    else
+			throw new java.io.FileNotFoundException(test.getPath());
 		}
 		return list;
 	    }
