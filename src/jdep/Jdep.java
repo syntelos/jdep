@@ -58,7 +58,7 @@ public class Jdep
 	return false;
     }
     public ClassFile lookup(String name){
-	return this.classes.get(name.replace('.','/')+".class");
+	return this.classes.get(name.replace('.','/'));
     }
     public ClassFile find(String name){
 	if (null == name)
