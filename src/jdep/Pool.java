@@ -56,7 +56,8 @@ public abstract class Pool {
         }
     }
     public final static Pool Read(DataInput din) throws IOException {
-        switch(Pool.Tag._(din)){
+	int tag = (din.readByte() & 0xFF);
+        switch(Pool.Tag._(tag)){
         case Utf8:
             return new Pool.Utf8(din);
         case Integer:
@@ -80,7 +81,7 @@ public abstract class Pool {
         case NameAndType:
             return new Pool.NameAndType(din);
         default:
-            throw new Error();
+            throw new Error(java.lang.String.format("Unrecognized POOL TAG 0x%x",tag));
         }
     }
     /**
