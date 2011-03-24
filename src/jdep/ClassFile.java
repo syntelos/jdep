@@ -33,6 +33,8 @@ public final class ClassFile
 
     public final String name;
 
+    public final int minorVersion, majorVersion;
+
     public final Pool[] pool;
 
     public final int[] types;
@@ -68,8 +70,8 @@ public final class ClassFile
             /*
              * File version
              */
-            final int minorVersion = ios.readShort();
-            final int majorVersion = ios.readShort();
+            this.minorVersion = ios.readShort();
+	    this.majorVersion = ios.readShort();
 
             final int poolCount = ios.readShort();
             /*
@@ -104,9 +106,6 @@ public final class ClassFile
                 }
                 catch (IOException exc){
                 }
-                finally {
-                    ios = null;
-                }
             }
         }
     }
@@ -116,7 +115,9 @@ public final class ClassFile
         return this.jdep.lookup(name);
     }
     public ClassFile find(String name){
-	if (name.equals(this.name))
+	if (null == name)
+	    return null;
+	else if (name.equals(this.name))
 	    return this;
 	else
 	    return this.jdep.find(name);

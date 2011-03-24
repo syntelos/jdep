@@ -16,7 +16,7 @@ public class Jdep
     extends java.net.URLClassLoader
 {
 
-    private boolean listtop = false;
+    private boolean listtop = false, verbose = false, once = true;
 
     private Map<String,ClassFile> classes = new HashMap<String,ClassFile>();
 
@@ -30,6 +30,11 @@ public class Jdep
 	this.listtop = (!this.listtop);
 	return this;
     }
+    public Jdep verbose(){
+	this.once = true;
+	this.verbose = (!this.verbose);
+	return this;
+    }
     public boolean list(String classname, PrintStream out){
 
 	return this.list(classname,new Visit.Flat(out));
@@ -40,6 +45,12 @@ public class Jdep
     }
     public boolean list(ClassFile cf, Visit out){
 	if (null != cf){
+	    if (this.verbose){
+		if (this.once){
+		    this.once = false;
+		    System.err.printf("Format %d.%d%n",cf.majorVersion,cf.minorVersion);
+		}
+	    }
 
 	    if (out.visit(cf)){
 
@@ -58,7 +69,10 @@ public class Jdep
 	return false;
     }
     public ClassFile lookup(String name){
-	return this.classes.get(name.replace('.','/'));
+	if (null != name)
+	    return this.classes.get(name.replace('.','/'));
+	else
+	    return null;
     }
     public ClassFile find(String name){
 	if (null == name)
@@ -90,7 +104,7 @@ public class Jdep
     }
 
     public enum Option {
-	CLASS, HELP, TOP, PATH;
+	CLASS, HELP, TOP, PATH, VERBOSE;
 
 	public final static Option For(String arg){
 	    if (null == arg)
@@ -110,7 +124,7 @@ public class Jdep
     public static void usage(){
 	System.out.println("Usage");
 	System.out.println();
-	System.out.println("  jdep [--top] --path file.jar --class pkg.class ");
+	System.out.println("  jdep [--verbose] [--top] --path file.jar --class pkg.class ");
 	System.out.println();
 	System.out.println("Description");
 	System.out.println();
@@ -129,7 +143,7 @@ public class Jdep
     public static void main(String[] argv){
 	final int argc = argv.length;
 	try {
-	    boolean listtop = false;
+	    boolean listtop = false, verbose = false;
 	    URL[] path = null;
 	    String classname = null;
 
@@ -170,6 +184,9 @@ public class Jdep
 		    else
 			usage();
 		    break;
+		case VERBOSE:
+		    verbose = true;
+		    break;
 		default:
 		    throw new Error(arg);
 		}
@@ -181,6 +198,9 @@ public class Jdep
 
 		if (listtop)
 		    main.listtop();
+
+		if (verbose)
+		    main.verbose();
 
 		main.list(classname,System.out);
 

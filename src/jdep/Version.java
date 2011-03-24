@@ -5,7 +5,7 @@ public final class Version
 {
     public final static String Name = "jdep";
     public final static int Major   =  0;
-    public final static int Minor   =  0;
+    public final static int Minor   =  1;
     public final static int Build   =  1;
 
 

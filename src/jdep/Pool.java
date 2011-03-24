@@ -46,9 +46,13 @@ public abstract class Pool {
 
         private final static Tag[] Values = Tag.values();
 
-        public final static Tag _(int idx){
+	private final static int Count = Values.length;
 
-            return Values[idx];
+        public final static Tag _(int idx){
+	    if (-1 < idx && idx < Count)
+		return Values[idx];
+	    else
+		return Reserved0;
         }
         public final static Tag _(DataInput din) throws IOException {
 
@@ -58,8 +62,12 @@ public abstract class Pool {
     public final static Pool Read(DataInput din) throws IOException {
 	int tag = (din.readByte() & 0xFF);
         switch(Pool.Tag._(tag)){
+	case Reserved0:
+	    return null;
         case Utf8:
             return new Pool.Utf8(din);
+	case Reserved2:
+	    return null;
         case Integer:
             return new Pool.Integer(din);
         case Float:
