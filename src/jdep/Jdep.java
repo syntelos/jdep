@@ -56,10 +56,15 @@ public class Jdep
 
 		for (Pool p: cf.pool){
 		    if (p instanceof Pool.Class){
-			ClassFile cc = (ClassFile)p.getValue(cf);
-			if (null != cc && cf != cc){
+			try {
+			    ClassFile cc = (ClassFile)p.getValue(cf);
+			    if (null != cc && cf != cc){
 
-			    this.list(cc,out);
+				this.list(cc,out);
+			    }
+			}
+			catch (Exception exc){
+			    exc.printStackTrace();
 			}
 		    }
 		}

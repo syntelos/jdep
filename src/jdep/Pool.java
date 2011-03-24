@@ -104,55 +104,7 @@ public abstract class Pool {
         public Utf8(DataInput din) throws IOException {
             super(Pool.Tag.Utf8);
 
-            StringBuilder strbuf = new StringBuilder();
-
-            final int len = (din.readShort() & 0xFFFF);
-            int charCnt = 0;
-            int byte8, char16;
-
-            while (charCnt < len) {
-
-                byte8 = (din.readByte() & 0xFF);
-
-                charCnt++;
-
-                if (1 == (byte8 & 0x80)) {
-                    /*
-                     * A multi-byte character (!)
-                     * 
-                     * (6) Bits (5:0)..
-                     */
-                    char16 = (byte8 & 0x3F);
-
-                    byte8 = (din.readByte() & 0xFF);
-
-                    charCnt++;
-                    /*
-                     * (6) Bits (11:6)..
-                     */
-                    char16 |= ((byte8 & 0x3F) << 6);
-
-                    if (1 == (byte8 & 0x80)) {
-                        /*
-                         * (4) Bits (15:12)..
-                         */
-                        byte8 = (din.readByte() & 0xFF);
-
-                        charCnt++;
-
-                        byte8 = (byte8 & 0xF);
-
-                        char16 |= (byte8 << 12);
-                    }
-
-                    strbuf.append( (char)(char16 & 0xFFFF));
-                }
-                else {
-
-                    strbuf.append( (char)(byte8 & 0xFF));
-                }
-            }
-            this.value = strbuf.toString();
+	    this.value = din.readUTF();
         }
 
 
