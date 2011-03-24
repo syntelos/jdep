@@ -32,7 +32,9 @@ public interface Visit {
 	public boolean visit(ClassFile cf){
 	    if (!cf.visited){
 		cf.visited = true;
-		this.out.printf(this.fmt,cf.name);
+		final String name = cf.name;
+		if (0 > name.indexOf('$'))
+		    this.out.printf(this.fmt,name);
 		return true;
 	    }
 	    else
