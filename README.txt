@@ -1,23 +1,26 @@
 
-Work in progress
+Status
 
-  Usage
+  The result set has not been proven to be complete.  Unexpected
+  experiences parsing the class file constant pool motivate a proof of
+  the result set.
 
-    jdep [--top] --path file.jar --class pkg.class 
+Usage
 
-  Description
+  jdep [--top] --path file.jar --class pkg.class 
 
-    Recursively list class dependencies from class in path.
+Description
 
-    Path is the usual (classpath) colon (:) delimited list of
-    file system directories and jar files.
+  Recursively list class dependencies from class in path.
 
-    Class is a fully qualified dot delimited classname.  Inner
-    classes are delimited with '$'.
+  Path is the usual (classpath) colon (:) delimited list of
+  file system directories and jar files.
 
-    With 'top', list the 'java.*' top level classes.
+  Class is a fully qualified dot delimited classname.  Inner
+  classes are delimited with '$'.
 
-Known Bugs
+  With 'top', list the 'java.*' top level classes.
 
-  The result set is known to be incomplete (incorrect).  Most likely
-  to be a problem in the class file constant pool.
+Notes
+
+  Inner classes are not reported.
