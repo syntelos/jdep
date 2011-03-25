@@ -140,8 +140,11 @@ public final class ClassFile
         return (tag == pool[idx].tag);
     }
     public Object getConst(int idx) {
-
-        return this.pool[idx].getValue(this);
+	Pool p = this.pool[idx];
+	if (null != p)
+	    return p.getValue(this);
+	else
+	    return null;
     }
     public Pool getConst0(int idx) {
 
